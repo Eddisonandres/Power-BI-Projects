@@ -68,10 +68,14 @@ This Power BI report was built using the loans_data_filtered.csv dataset. It pro
 - Shows the distribution of outstanding amounts by product and office.
 - Includes a pie chart and scatter plot for comparative analysis.
 
-
 ✔ File Used
 - loans_data_filtered.csv: Contains anonymized loan data used for all visuals.
 
+## Screenshot:
+
+![Vintage Analysis](Screenshot_Vintage_Analysis.PNG)
+
+![General Analysis](Screenshot_Gral_Analysis.PNG)
 
 ## 🔧 Requirements
 
