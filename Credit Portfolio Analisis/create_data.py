@@ -87,6 +87,56 @@ def add_record(
     #print(record)
     credit_data_all.append(record)
 
+# function to create the summary file CSV
+def build_summary_data():
+    # filter the data
+    df_filter_credit = df_all_credits[df_all_credits['cut_month'] <= CUT_DATE_DATA].copy()
+    # conditions to add a column
+    conditions = [
+        df_filter_credit['days_past_due'] == 0,
+        df_filter_credit['days_past_due'] <= 30,
+        df_filter_credit['days_past_due'] <= 40,
+        df_filter_credit['days_past_due'] <= 50,
+        df_filter_credit['days_past_due'] <= 60
+    ]
+    condition_values = [
+        'Excellent',
+        'Regular',
+        'Doubtful 31-40',
+        'Doubtful 41-50',
+        'Doubtful 51-60',
+    ]
+    # add the column credit status acording to the days_past_due
+    df_filter_credit['credit_status'] = np.select(conditions, condition_values, default = 'Bad debt')
+    # convert disbursement_date to date time
+    df_filter_credit['disbursement_date'] = pd.to_datetime(df_filter_credit['disbursement_date'], dayfirst=True)
+    # add column disbursement_month
+    df_filter_credit['disbursement_month'] = df_filter_credit['disbursement_date'].dt.strftime('%Y%m').astype(int)
+    # add column to control it is a new credit
+    df_filter_credit['is_new_loan'] = df_filter_credit['disbursement_month'] == df_filter_credit['cut_month'].astype(int)
+    # add new column to count rows
+    df_filter_credit['count_records'] = 0
+    summary_data = df_filter_credit.groupby([
+        'cut_month',
+        'disbursement_month',
+        'loan_term',
+        'interest_rate',
+        'agency_code',
+        'agency_name',
+        'product_code',
+        'product_name',
+        'credit_status'
+    ], as_index=False).agg({
+        'loan_amount': lambda x: x[df_filter_credit.loc[x.index, 'is_new_loan']].sum(),  # sum when disbursement_month == cut_month
+        'disbursement_date': lambda x: x[df_filter_credit.loc[x.index, 'is_new_loan']].count(),  # count when disbursement_month == cut_month
+        'outstanding_balance': 'sum',
+        'count_records': 'count'  # count the rows
+    }).rename(columns={
+        'disbursement_date': 'loan_amount_count'
+    })
+    # export the file
+    output_path_multi = os.path.join(script_dir, "loans_data_filtered.csv")
+    summary_data.to_csv(output_path_multi, index=False)
 # create the ids for the credits
 products_id = [f'{1000 + i}' for i in range(NUM_CREDITS)]
 random_date = START_DATE_LOAN
@@ -194,60 +244,7 @@ df_all_credits = pd.DataFrame(credit_data_all)
 # path to save the data
 script_dir = os.path.dirname(os.path.abspath(__file__))
 output_path_multi = os.path.join(script_dir, "loans_data.csv")
-
+# export the data file
 df_all_credits.to_csv(output_path_multi, index=False)
-
-
-def build_summary_data():
-    # filter the data
-    df_filter_credit = df_all_credits[df_all_credits['cut_month'] <= CUT_DATE_DATA].copy()
-    # conditions to add a column
-    conditions = [
-        df_filter_credit['days_past_due'] == 0,
-        df_filter_credit['days_past_due'] <= 30,
-        df_filter_credit['days_past_due'] <= 40,
-        df_filter_credit['days_past_due'] <= 50,
-        df_filter_credit['days_past_due'] <= 60
-    ]
-    condition_values = [
-        'Excellent',
-        'Regular',
-        'Doubtful 31-40',
-        'Doubtful 41-50',
-        'Doubtful 51-60',
-    ]
-    # add the column credit status acording to the days_past_due
-    df_filter_credit['credit_status'] = np.select(conditions, condition_values, default = 'Bad debt')
-    # convert disbursement_date to date time
-    df_filter_credit['disbursement_date'] = pd.to_datetime(df_filter_credit['disbursement_date'], dayfirst=True)
-    # add column disbursement_month
-    df_filter_credit['disbursement_month'] = df_filter_credit['disbursement_date'].dt.strftime('%Y%m').astype(int)
-    # add column to control it is a new credit
-    df_filter_credit['is_new_loan'] = df_filter_credit['disbursement_month'] == df_filter_credit['cut_month'].astype(int)
-    # add new column to count rows
-    df_filter_credit['count_records'] = 0
-    summary_data = df_filter_credit.groupby([
-        'cut_month',
-        'disbursement_month',
-        'loan_term',
-        'interest_rate',
-        'agency_code',
-        'agency_name',
-        'product_code',
-        'product_name',
-        'credit_status'
-    ], as_index=False).agg({
-        'loan_amount': lambda x: x[df_filter_credit.loc[x.index, 'is_new_loan']].sum(),  # sum when disbursement_month == cut_month
-        'disbursement_date': lambda x: x[df_filter_credit.loc[x.index, 'is_new_loan']].count(),  # count when disbursement_month == cut_month
-        'outstanding_balance': 'sum',
-        'count_records': 'count'  # count the rows
-    }).rename(columns={
-        'disbursement_date': 'loan_amount_count'
-    })
-
-    output_path_multi = os.path.join(script_dir, "loans_data_filtered.csv")
-    summary_data.to_csv(output_path_multi, index=False)
-    
-    
-
+# go to the function to create the summary file to use in PBI    
 build_summary_data()
