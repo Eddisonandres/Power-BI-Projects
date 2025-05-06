@@ -36,7 +36,7 @@ MAX_LOAN = 10000
 RATE_PRODUCTS = [0.05, 0.08, 0.09, 0.1]
 LOAN_TERMS = [12, 24, 36, 48, 60]
 START_DATE_LOAN = datetime(2022, 1, 1)
-END_DATE_LOAN = datetime(2024, 12, 31)
+END_DATE_LOAN = datetime(2025, 4, 30)
 DELTA = END_DATE_LOAN - START_DATE_LOAN
 CUT_DATE_DATA = '202503'
 IMPAIRED = 180
@@ -48,6 +48,8 @@ AGENCIES = {
     50: 'Whitby'
 }
 AMORTIZATION = 30
+DETAIL_FILE_NAME = "loans_data"
+SUMMARY_FILE_NAME = "loans_data_filtered"
 
 # function to add the record of each loan
 def add_record(
@@ -135,8 +137,9 @@ def build_summary_data():
         'disbursement_date': 'loan_amount_count'
     })
     # export the file
-    output_path_multi = os.path.join(script_dir, "loans_data_filtered.csv")
+    output_path_multi = os.path.join(script_dir, SUMMARY_FILE_NAME + ".csv")
     summary_data.to_csv(output_path_multi, index=False)
+    print("The " + SUMMARY_FILE_NAME + " has been exported with " + str('{:,}'.format(len(summary_data))) + " records")
 # create the ids for the credits
 products_id = [f'{1000 + i}' for i in range(NUM_CREDITS)]
 random_date = START_DATE_LOAN
@@ -243,8 +246,10 @@ for pid in products_id:
 df_all_credits = pd.DataFrame(credit_data_all)
 # path to save the data
 script_dir = os.path.dirname(os.path.abspath(__file__))
-output_path_multi = os.path.join(script_dir, "loans_data.csv")
+output_path_multi = os.path.join(script_dir, DETAIL_FILE_NAME + ".csv")
 # export the data file
 df_all_credits.to_csv(output_path_multi, index=False)
+print("The " + DETAIL_FILE_NAME + " has been exported with " + str('{:,}'.format(len(df_all_credits))) + " records")
 # go to the function to create the summary file to use in PBI    
 build_summary_data()
+print("Process finished successfully!!")
