@@ -12,6 +12,7 @@ The data is sourced from the **Weather Unlocked API**, which provides weather in
 
 ## How to Use:
 1. **Download the files** from the [Weather Unlocked API](https://developer.weatherunlocked.com/).
+    - Data Example: [Here](https://github.com/Eddisonandres/Power-BI-Projects/tree/main/data)
 2. **Import the CSV files** into Power BI.
 3. The report will automatically process the data and display the weather information for the last day and the next 5 days.
 4. The visualizations include the temperature range, current weather conditions, and a detailed daily forecast.
